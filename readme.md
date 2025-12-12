@@ -48,8 +48,9 @@ For the setup it is important to use hyperv, this makes it exteremly easy to pul
 I'm using githubs artifact repository, you will have to do something similar for other
 
 1. Register your classic PAT in kube
-kubectl create secret docker-registry gh-regcred \
+```kubectl create secret docker-registry gh-regcred \
   --docker-server=ghcr.io \
   --docker-username=<YOUR_GITHUB_USERNAME> \
   --docker-password=<YOUR_PAT> \
   --docker-email=<YOUR_GITHUB_EMAIL>
+  ```
