@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hb-angular-spa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hb-angular-spa-app
+  template:
+    metadata:
+      labels:
+        app: hb-angular-spa-app
+    spec:
+      containers:
+      - name: hb-angular-spa-container
+        image: ghcr.io/hollowbytes/hb-angular-spa:main
+        imagePullPolicy: Always 
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: gh-regcred
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hb-angular-spa-service
+  labels:
+    app: hb-angular-spa-app
+spec:
+  selector:
+    app: hb-angular-spa-app
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80 
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: hb-angular-spa-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: hb-angular-spa-virtualservice
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - hb-angular-spa-gateway
+  http:
+  - route:
+    - destination:
+        host: hb-angular-spa-service
+        port:
+          number: 80
+
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: hb-angular-spa-destination-rule
+spec:
+  host: hb-angular-spa-service
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL # This is essential for mTLS
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+
+---
